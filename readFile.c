@@ -1,34 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-
-/*
-* This is a hashtable to store the name of a file and the frequency of a given string in this file. It will be stored
-* in a hashtable of strings to represent the frequency of that string in each file. It contains a pointer to the next 
-* file in the list.
-*/
-typedef struct _fileTable {
-	char* fileName;
-	int frequency;
-	struct _fileTable* next;
-} fileTable;
-
-/*
-* This is a struct to create a hashtable of strings. Each stringMap contains a string, a pointer to the next string in
-* the hashtable, and a pointer to a hashtable of files which holds the string's frequency in each file in the hashtable.
-*/
-typedef struct _stringTable {
-	char* string;
-	fileTable* files;
-	struct _stringTable* next;
-} stringTable;
+#include "readFile.h"
 
 static stringTable* allStrings;
-
-char* checkNextChar(char* string, char nextChar) {
-	if (!isalnum(nextChar))
-}
 
 /*
 * This function returns the next token in the given file. It first mallocs 5 bytes and keeps track of the size of the token.
@@ -36,36 +8,37 @@ char* checkNextChar(char* string, char nextChar) {
 * before then, this function returns NULL. Otherwise, the token expands to contain all alphanumerical values afterwards and stops
 * when it reaches a non-alphanumerical value. Then the function returns that token.
 */
-char* getToken(FILE file) {
+char* getToken(int file) {
 	int currentSize = 0;
 	int maxSize = 5;
 	char* nextToken = malloc(maxSize);
-	char nextChar = getc(file);
+	char* nextChar = malloc(1);
 	// Iterates through the file until an alphabetical character is reached.
-	while (!isalpha(nextChar) && nextChar != EOF) {
-		nextChar = getc(file);
+	while (!isalpha(*nextChar)) {
+		// If the end of the file is reached before another token is found, then return NULL.
+		if (read(file, nextChar, 1) == 0) {
+			printf("End of file\n");
+			return NULL;
+		}
+		printf("Searching\n");
 	}
-	// If the end of the file is reached before another token is found, then return NULL.
-	if (nextChar == EOF) {
-		return NULL;
-	}
-	nextToken = nextChar;
-	currentSize++;
 	// Add all subsequent alphanumerical characters to the token.
-	while (isalnum(nextChar)) {
-		nextToken[currentSize] = nextChar;
+	while (isalnum(*nextChar)) {
+		nextToken[currentSize] = tolower(*nextChar);
 		currentSize++;
+		printf("Reading through characters\n");
 		// Dynamically reallocate memory if the current size is exceeded.
 		if (currentSize > maxSize) {
 			nextToken = realloc(nextToken, maxSize + 5);
 		}
-		nextChar = getc(file);
+		printf("Chaning nextChar from %c\n", *nextChar);
+		read(file, nextChar, 1);
 	}
 	if (currentSize > maxSize) {
 		nextToken = realloc(nextToken, maxSize + 1);
 		currentSize++;
 	}
-	nextToken[currentSize] = '/0';
+	nextToken[currentSize] = '\0';
 	return nextToken;
 }
 
@@ -74,46 +47,65 @@ char* getToken(FILE file) {
 * and iterates through one character at a time to get each string token. It adds these strings to the allStrings stringMap.
 */
 void readFile(char* fileName) {
-	i = 0;
+	int i = 0;
 	/*
 	* This converts the file name to all lower case.
 	*/
+	char* nameOfFile = malloc(strlen(fileName) + 1);
 	while (i < strlen(fileName)) {
-		fileName[i] = tolower(fileName[i]);
+		printf("Changing character %d\n", i);
+		nameOfFile[i] = tolower(fileName[i]);
 		i++;
 	}
-	FILE file = fopen(fileName, 'r');
+	nameOfFile[i] = '\0';
+	printf("Opening %s\n", fileName);
+	int file = open(fileName, O_RDONLY);
+	printf("%s opened\n", fileName);
 	/*
 	* If the file does not exist, throw an error and return.
 	*/
-	if (file == NULL) {
+	if (file == -1) {
 		printf("Specified file does not exist\n");
 		return;
 	}
 	//Fetch the next token in the file. 
 	char* nextToken = getToken(file);
+	printf("Tokenizer worked: Token is %s\n", nextToken);
 	/*
 	* Keep iterating through the tokens in the current file until it's NULL. This means that there are no more tokens
 	* in the file.
 	*/
 	while (nextToken != NULL) {
+		printf("Next token is %s\n", nextToken);
 		// Allocates memory and defines a new nameOfFile string to be stored if a new file key is created.
-		char* nameOfFile = malloc(strlen(fileName) + 1);
+		nameOfFile = malloc(strlen(fileName) + 1);
 		i = 0;
 		while (i < strlen(fileName)) {
 			nameOfFile[i] = fileName[i];
 			i++;
 		}
-		nameOfFile[i] = '/0';
+		printf("Just checking\n");
+		nameOfFile[i] = '\0';
 		stringTable* ptr = allStrings;
 		stringTable* prev = NULL;
 		/* 
 		* Keep iterating through the hashtable of allStrings until the string value of the next token is greater than or equal to
 		* the string value of the token in the hashtable or if the end of the hashtable is reached.
 		*/
-		while (ptr != NULL) {
-			while (strcmp(newToken, ptr->string) < 0) {
-				ptr = ptr->next;
+		int comparisonResult;
+		if (ptr == NULL) {
+			comparisonResult = 0;
+		} else {
+			comparisonResult = strcmp(nextToken, ptr->string);
+		}
+		while (comparisonResult > 0) {
+			printf("iterate\n");
+			prev = ptr;
+			ptr = ptr->next;
+			if (ptr == NULL) {
+				comparisonResult = 0;
+			} else {
+				comparisonResult = strcmp(nextToken, ptr->string);
 			}
 		}
 		/*
@@ -121,28 +113,42 @@ void readFile(char* fileName) {
 		* of the next token and a new file hashtable object that contains just this file with frequency 1. 
 		*/
 		if (ptr == NULL) {
+			printf("Reached end of hashtable\n");
 			fileTable* newFile = malloc(sizeof(fileTable));
 			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
 			newFile->next = NULL;
 			stringTable* newString = malloc(sizeof(stringTable));
-			newString->string = newToken;
+			newString->string = nextToken;
 			newString->files = newFile;
 			newString->next = NULL;
 			if (prev != NULL) {
 				prev->next = newString;
+			} else {
+				allStrings = newString;
 			}
 			/*
 			* If the next token is already in the string hashtable, iterate through its file hashtable to see if this file is present there.
 			* If it is, increment the frequency by one. Otherwise, create a new file key.
 			*/
-		} else if (strcmp(newToken, ptr->string) == 0) {
+		} else if (comparisonResult == 0) {
+			printf("Same string\n");
 			fileTable* fileptr = ptr->files;
 			fileTable* fileprev = NULL;
-			while (fileptr != NULL) {
-				while (strcmp(nameOfFile, fileptr->fileName) < 0) {
-					fileprev = fileptr;
-					fileptr = fileptr->next;
+			int fileComparisonResult;
+			if (fileptr == NULL) {
+				fileComparisonResult = 0;
+			} else {
+				fileComparisonResult = strcmp(nameOfFile, fileptr->fileName);
+			}
+			while (fileComparisonResult > 0) {
+				printf("iterate\n");
+				fileprev = fileptr;
+				fileptr = fileptr->next;
+				if (fileptr == NULL) {
+					fileComparisonResult = 0;
+				} else {
+					fileComparisonResult = strcmp(nameOfFile, fileptr->fileName);
 				}
 			}
 			/*
@@ -152,15 +158,17 @@ void readFile(char* fileName) {
 				fileTable* newFile = malloc(sizeof(nameOfFile));
 				newFile->fileName = nameOfFile;
 				newFile->frequency = 1;
-				newFile->next = fileptr;
+				newFile->next = NULL;
 				if (fileprev != NULL) {
 					fileprev->next = newFile;
+				} else {
+					ptr->files = newFile;
 				}
 			}
 			/*
 			* If the file is found, then increase its frequency. Because you didn't create a new file key, you can free nameOfFile.
 			*/
-			else if (strcmp(nameOfFile, fileptr->fileName) == 0) {
+			else if (fileComparisonResult == 0) {
 				fileptr->frequency++;
 				free(nameOfFile);
 				/*
@@ -174,6 +182,8 @@ void readFile(char* fileName) {
 				newFile->next = fileptr;
 				if (fileprev != NULL) {
 					fileprev->next = newFile;
+				} else {
+					ptr->files = newFile;
 				}
 			}
 		/*
@@ -181,21 +191,34 @@ void readFile(char* fileName) {
 		* is not in the hashtable. Create a new token key and create a new file hashtable for it.
 		*/
 		} else {
+			printf("Inserting between nodes\n");
 			fileTable* newFile = malloc(sizeof(fileTable));
 			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
 			newFile->next = NULL;
 			stringTable* newString = malloc(sizeof(stringTable));
-			newString->string = newToken;
+			newString->string = nextToken;
 			newString->files = newFile;
 			newString->next = ptr;
 			if (prev != NULL) {
 				prev->next = newString;
+			} else {
+				allStrings = newString;
 			}
 		}
 		// After checking for the given next token, get the next one.
 		nextToken = getToken(file);
 	}
 	//Close the file at the end of everything.
-	fclose(file);
+	close(file);
+}
+
+int main(int argc, char *argv[]) {
+	char* file = "Hints.txt";
+	readFile(file);
+	stringTable* ptr = allStrings;
+	while (ptr != NULL) {
+		printf("%s files: %s %d\n", ptr->string, ptr->files->fileName, ptr->files->frequency);
+		ptr = ptr->next;
+	}
 }
