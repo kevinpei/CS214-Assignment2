@@ -46,7 +46,7 @@ char* getToken(int file) {
 * This function takes the string representation of a file name and opens it and reads it. It opens the file in read mode 
 * and iterates through one character at a time to get each string token. It adds these strings to the allStrings stringMap.
 */
-void readFile(char* fileName) {
+int readFile(char* fileName) {
 	int i = 0;
 	/*
 	* This converts the file name to all lower case.
@@ -66,7 +66,7 @@ void readFile(char* fileName) {
 	*/
 	if (file == -1) {
 		printf("Specified file does not exist\n");
-		return;
+		return -1;
 	}
 	//Fetch the next token in the file. 
 	char* nextToken = getToken(file);
@@ -211,6 +211,69 @@ void readFile(char* fileName) {
 	}
 	//Close the file at the end of everything.
 	close(file);
+	return 1;
+}
+
+/*
+* This function writes to a new file with the given fileName using the given hashtable. The file will be formatted like an XML
+* file.
+*/
+int writeFile(char* fileName, stringTable* hashtable) {
+	/*
+	* Create a new file in read or write mode with all permissions.
+	*/
+	int file = open(fileName, O_CREAT | O_WRONLY, S_IRUSR | S_IRGRP | S_IROTH);
+	// If file isn't -1, that means a file with the same name already exists.
+/*	if (file != -1) {
+		printf("This file already exists.\n");
+		close(file);
+		return -1;
+	}
+	/*
+	* Create a hashtable ptr to iterate through the string hashtable. Also include a nextLine string that will be written into
+	* the file and change its value to change what will be written into the file.
+	*/
+	stringTable* ptr = hashtable;
+	char* nextLine = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+	printf("Writing 1\n");
+	write(file, nextLine, strlen(nextLine));
+	nextLine = "<fileIndex>\n";
+	printf("Writing 2\n");
+	write(file, nextLine, strlen(nextLine));
+	/*
+	* Iterate through the hashtable until the end is reached. For each node in the hashtable, create the appropriate XML tags.
+	*/
+	while (ptr != NULL) {
+		nextLine = malloc(strlen(ptr->string) + 100);
+		sprintf(nextLine, "\t<word text=\"%s\">\n", ptr->string);
+		printf("Writing %s\n", ptr->string);
+		write(file, nextLine, strlen(nextLine));
+		free(nextLine);
+		/*
+		* After printing out the tags for the word, print out the tags for each file and the word's frequency in that file.
+		*/
+		fileTable* fileptr = ptr->files;
+		while (fileptr != NULL) {
+			nextLine = malloc(strlen(fileptr->fileName) + 100);
+			sprintf(nextLine, "\t\t<file name=\"%s\">%d</file>\n", fileptr->fileName, fileptr->frequency);
+			write(file, nextLine, strlen(nextLine));
+			fileptr = fileptr->next;
+			free(nextLine);
+		}
+		/*
+		* Finally, print the closing tags for that word and move on to the next word.
+		*/
+		nextLine = "\t</word>\n";
+		write(file, nextLine, strlen(nextLine));
+		ptr = ptr->next;
+	}
+	/*
+	* After printing out all the word and file tags, print the closing tags for the XML file.
+	*/
+	nextLine = "</fileIndex>\n";
+	write(file, nextLine, strlen(nextLine));
+	close(file);
+	return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -221,4 +284,6 @@ int main(int argc, char *argv[]) {
 		printf("%s files: %s %d\n", ptr->string, ptr->files->fileName, ptr->files->frequency);
 		ptr = ptr->next;
 	}
+	writeFile("Test.txt", allStrings);
+	return 1;
 }

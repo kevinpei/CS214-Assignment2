@@ -26,4 +26,4 @@ typedef struct _stringTable {
 } stringTable;
 
 char* getToken(int file);
-void readFile(char* fileName);
+int readFile(char* fileName);
