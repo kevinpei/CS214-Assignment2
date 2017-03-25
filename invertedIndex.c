@@ -356,6 +356,11 @@ int main(int argc, char *argv[]) {
 	
 	int result = isDir(outputFile); 	
 	
+	if(result == 1) {
+		printf("Your output file matches the same name as an existing directory. Exiting now...\n"); 
+		return;
+	}
+
 	if(result == 0) {
 		char * input[1000];
 		char * newName[1000]; 
