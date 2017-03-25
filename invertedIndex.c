@@ -6,6 +6,22 @@
 #include <unistd.h>
 #include <dirent.h>
 
+
+typedef struct _fileTable{
+	char* fileName; 
+	int frequency; 
+	struct _fileTable* next;
+} fileTable; 
+
+typedef struct _stringtable {
+	char* string;
+	fileTable* files;
+	struct _stringTable* next;
+} stringTable; 
+
+static fileTable* all_files; 
+
+
 int isDir(char * path) {	
 	struct stat buf; 
 	stat(path, &buf);
@@ -23,25 +39,46 @@ int isDir(char * path) {
 
 void search_dir(char * dir) {
 	
+	int index = 0;
 	char * fileName; 
-	DIR * directory = opendir(dir); 
 	
-	struct dirent * entry; 
+	printf("Here...\n");
+	struct dirent *entry;
+	DIR * directory;
 
-	while(1) {
-		entry = readdir(directory);  
-		if(entry != NULL) {
-			fileName = entry->d_name;
-						
+	if((directory = opendir(dir)) == NULL) {
+		printf("Do this\n");
+	} 
+ 
+	while((entry = readdir(directory)) != NULL){  		
+		printf("Enter loop\n");
+		fileName = entry->d_name;
+		char * next = (char*) malloc(1 + strlen(fileName) + strlen(dir));
+		
+		strcpy(next,dir);  
+		
+		if(strcmp(fileName, ".") && strcmp(fileName, "..")) {
+			
+			strcat(next,"/");
+			strcat(next, fileName); 
+			printf("%s\n", next); 
+		
+			int result = isDir(next);
+			printf("%d\n", result); 
+			
+			if(result == 1) {
+				search_dir(next);
+			}
+		}	
 
-			printf(fileName);
-			printf("\n");
-		} else {
-			break; 
-		}
+		free(next);
+		printf("Hello\n");			
+
+		printf("End of loop\n"); 
 	} 
 
-} 
+	closedir(directory);	
+}
 
 void parse_file(char * file) {
 
