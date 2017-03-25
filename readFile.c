@@ -90,56 +90,99 @@ void readFile(char* fileName) {
 		printf("Specified file does not exist\n");
 		return;
 	}
+	//Fetch the next token in the file. 
 	char* nextToken = getToken(file);
+	/*
+	* Keep iterating through the tokens in the current file until it's NULL. This means that there are no more tokens
+	* in the file.
+	*/
 	while (nextToken != NULL) {
+		// Allocates memory and defines a new nameOfFile string to be stored if a new file key is created.
+		char* nameOfFile = malloc(strlen(fileName) + 1);
+		i = 0;
+		while (i < strlen(fileName)) {
+			nameOfFile[i] = fileName[i];
+			i++;
+		}
+		nameOfFile[i] = '/0';
 		stringTable* ptr = allStrings;
 		stringTable* prev = NULL;
+		/* 
+		* Keep iterating through the hashtable of allStrings until the string value of the next token is greater than or equal to
+		* the string value of the token in the hashtable or if the end of the hashtable is reached.
+		*/
 		while (ptr != NULL) {
 			while (strcmp(newToken, ptr->string) < 0) {
 				ptr = ptr->next;
 			}
 		}
+		/*
+		* If ptr is NULL, that means the end of the hashtable has been reached. In that case, insert a new key at the end with the name
+		* of the next token and a new file hashtable object that contains just this file with frequency 1. 
+		*/
 		if (ptr == NULL) {
 			fileTable* newFile = malloc(sizeof(fileTable));
-			newFile->fileName = fileName;
+			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
 			newFile->next = NULL;
 			stringTable* newString = malloc(sizeof(stringTable));
 			newString->string = newToken;
 			newString->files = newFile;
 			newString->next = NULL;
+			if (prev != NULL) {
+				prev->next = newString;
+			}
+			/*
+			* If the next token is already in the string hashtable, iterate through its file hashtable to see if this file is present there.
+			* If it is, increment the frequency by one. Otherwise, create a new file key.
+			*/
 		} else if (strcmp(newToken, ptr->string) == 0) {
 			fileTable* fileptr = ptr->files;
 			fileTable* fileprev = NULL;
 			while (fileptr != NULL) {
-			while (strcmp(fileName, fileptr->fileName) < 0) {
+				while (strcmp(nameOfFile, fileptr->fileName) < 0) {
 					fileprev = fileptr;
 					fileptr = fileptr->next;
 				}
 			}
+			/*
+			* If the end of the file hashtable is reached and the file was not found, create a new file key at the end.
+			*/
 			if (fileptr == NULL) {
-				fileTable* newFile = malloc(sizeof(fileTable));
-				newFile->fileName = fileName;
+				fileTable* newFile = malloc(sizeof(nameOfFile));
+				newFile->fileName = nameOfFile;
 				newFile->frequency = 1;
 				newFile->next = fileptr;
 				if (fileprev != NULL) {
 					fileprev->next = newFile;
 				}
 			}
-			else if (strcmp(fileName, fileptr->fileName) == 0) {
+			/*
+			* If the file is found, then increase its frequency. Because you didn't create a new file key, you can free nameOfFile.
+			*/
+			else if (strcmp(nameOfFile, fileptr->fileName) == 0) {
 				fileptr->frequency++;
+				free(nameOfFile);
+				/*
+				* If the file name is greater than the file name of the current key, that means the current file name does not exist
+				* in the hashtable. Create a new file key and link it to the rest of the hashtable.
+				*/
 			} else {
 				fileTable* newFile = malloc(sizeof(fileTable));
-				newFile->fileName = fileName;
+				newFile->fileName = nameOfFile;
 				newFile->frequency = 1;
 				newFile->next = fileptr;
 				if (fileprev != NULL) {
 					fileprev->next = newFile;
 				}
 			}
+		/*
+		* If the string value of the next token is greater than the string value of the current string in the hashtable, then the next token
+		* is not in the hashtable. Create a new token key and create a new file hashtable for it.
+		*/
 		} else {
 			fileTable* newFile = malloc(sizeof(fileTable));
-			newFile->fileName = fileName;
+			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
 			newFile->next = NULL;
 			stringTable* newString = malloc(sizeof(stringTable));
@@ -150,6 +193,9 @@ void readFile(char* fileName) {
 				prev->next = newString;
 			}
 		}
+		// After checking for the given next token, get the next one.
 		nextToken = getToken(file);
 	}
+	//Close the file at the end of everything.
+	fclose(file);
 }
