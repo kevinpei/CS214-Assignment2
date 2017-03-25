@@ -284,6 +284,6 @@ int main(int argc, char *argv[]) {
 		printf("%s files: %s %d\n", ptr->string, ptr->files->fileName, ptr->files->frequency);
 		ptr = ptr->next;
 	}
-	writeFile("Test.txt", allStrings);
+	writeFile(file, allStrings);
 	return 1;
 }
