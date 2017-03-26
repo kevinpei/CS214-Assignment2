@@ -87,18 +87,15 @@ char* getToken(int file) {
 			printf("End of file\n");
 			return NULL;
 		}
-		printf("Searching\n");
 	}
 	// Add all subsequent alphanumerical characters to the token.
 	while (isalnum(*nextChar)) {
 		nextToken[currentSize] = tolower(*nextChar);
 		currentSize++;
-		printf("Reading through characters\n");
 		// Dynamically reallocate memory if the current size is exceeded.
 		if (currentSize > maxSize) {
 			nextToken = realloc(nextToken, maxSize + 5);
 		}
-		printf("Chaning nextChar from %c\n", *nextChar);
 		read(file, nextChar, 1);
 	}
 	if (currentSize > maxSize) {
@@ -148,10 +145,9 @@ int readFile(char* fileName) {
 		nameOfFile = malloc(strlen(fileName) + 1);
 		i = 0;
 		while (i < strlen(fileName)) {
-			nameOfFile[i] = fileName[i];
+			nameOfFile[i] = tolower(fileName[i]);
 			i++;
 		}
-		printf("Just checking\n");
 		nameOfFile[i] = '\0';
 		stringTable* ptr = allStrings;
 		stringTable* prev = NULL;
@@ -166,7 +162,6 @@ int readFile(char* fileName) {
 			comparisonResult = strcmp(nextToken, ptr->string);
 		}
 		while (comparisonResult > 0) {
-			printf("iterate\n");
 			prev = ptr;
 			ptr = ptr->next;
 			if (ptr == NULL) {
@@ -226,30 +221,53 @@ int readFile(char* fileName) {
 					* it is in the correct alphabetical position within its frequency bracket.
 					*/
 					while (newptr != NULL && positionFound == 0) {
-						printf("Error?\n");
 						if (newptr->frequency == fileptr->frequency && strcmp(newptr->fileName, fileptr->fileName) < 0) {
+							printf("Compared %s and %s\n", newptr->fileName, fileptr->fileName);
+							printf("Found correct bracket\n");
 							positionFound = 1;
 						}else if (newptr->frequency > fileptr->frequency) {
+							printf("Missed bracket\n");
 							positionFound = 1;
 						} else {
 							newprev = newptr;
 							newptr = newptr->prev;
 						}
 					}
-					if (fileptr->next != NULL) {
-						fileptr->next->prev = fileptr->prev;
-					}
-					if (fileptr->prev != NULL) {
-						fileptr->prev->next = fileptr->next;
-					}
-					fileptr->next = newprev;
-					fileptr->prev = newptr;
-					if (newprev != NULL) {
-						newprev->prev = fileptr;
-					}
-					if (newptr != NULL) {
-						newptr->next = fileptr;
+					if (positionFound == 1) {
+						printf("Found a position\n");
+						if (fileptr->next != NULL) {
+							fileptr->next->prev = fileptr->prev;
+						}
+						if (fileptr->prev != NULL) {
+							fileptr->prev->next = fileptr->next;
+						}
+						fileptr->prev = newptr;
+						if (newptr != NULL) {
+							newptr->next = fileptr;
+						}
+						printf("prev is %s\n", newptr->fileName);
+						printf("This is %s\n", fileptr->fileName);
+						if (newprev != NULL) {
+							if (fileptr != newprev) {
+								fileptr->next = newprev;	
+								newprev->prev = fileptr;
+							}
+						}
 					} else {
+						printf("Reached the end\n");
+						if (fileptr->next != NULL) {
+							fileptr->next->prev = fileptr->prev;
+						}
+						if (fileptr->prev != NULL) {
+							fileptr->prev->next = fileptr->next;
+						}
+						if (newprev != NULL) {
+							if (fileptr != newprev) {
+								fileptr->next = newprev;
+								newprev->prev = fileptr;
+							}
+						}
+						fileptr->prev = NULL;
 						ptr->files = fileptr;
 					}
 					fileFound = 1;
@@ -262,6 +280,7 @@ int readFile(char* fileName) {
 			* that it is in the correct alphabetical location.
 			*/
 			if (fileFound == 0) {
+				printf("File not found\n");
 				fileptr = fileprev;
 				fileprev = NULL;
 				fileTable* newFile = malloc(sizeof(fileTable));
@@ -269,7 +288,7 @@ int readFile(char* fileName) {
 				newFile->frequency = 1;
 				int positionFound = 0;
 				while (fileptr != NULL && positionFound == 0) {
-					if (fileptr->frequency == 1 && strcmp(fileptr->fileName, newFile->fileName) > 0) {
+					if (fileptr->frequency == 1 && strcmp(fileptr->fileName, newFile->fileName) < 0) {
 						positionFound = 1;
 					}
 					else if (fileptr->frequency > 1) {
@@ -285,6 +304,7 @@ int readFile(char* fileName) {
 					fileprev->prev = newFile;
 				}
 				if (fileptr != NULL){
+					printf("Changing the next file\n");
 					fileptr->next = newFile;
 				} else {
 					ptr->files = newFile;
@@ -296,7 +316,6 @@ int readFile(char* fileName) {
 		* is not in the hashtable. Create a new token key and create a new file hashtable for it.
 		*/
 		} else {
-			printf("Inserting between nodes\n");
 			fileTable* newFile = malloc(sizeof(fileTable));
 			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
@@ -311,10 +330,8 @@ int readFile(char* fileName) {
 				allStrings = newString;
 			}
 		}
-		printf("Getting next token\n");
 		// After checking for the given next token, get the next one.
 		nextToken = getToken(file);
-		printf("getting next token %s\n", nextToken);
 	}
 	//Close the file at the end of everything.
 	close(file);
