@@ -1,4 +1,5 @@
-#include "readFile.h"
+#include "readAndWriteFile.h"
+#include "dirFunctions.h"
 
 static stringTable* allStrings;
 
@@ -21,9 +22,6 @@ int isDir(char * path) {
 }
 
 /*
-
-
-
 */
 
 void search_dir(char * dir) {
@@ -184,18 +182,23 @@ int readFile(char* fileName) {
 		if (ptr == NULL) {
 			printf("Reached end of hashtable\n");
 			fileTable* newFile = malloc(sizeof(fileTable));
+			printf("uh\n");
 			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
 			newFile->next = NULL;
+			newFile->prev = NULL;
+			printf("Garn\n");
 			stringTable* newString = malloc(sizeof(stringTable));
 			newString->string = nextToken;
 			newString->files = newFile;
 			newString->next = NULL;
+			printf("Is something wrong\n");
 			if (prev != NULL) {
 				prev->next = newString;
 			} else {
 				allStrings = newString;
 			}
+			printf("What's happening\n");
 			/*
 			* If the next token is already in the string hashtable, iterate through its file hashtable to see if this file is present there.
 			* If it is, increment the frequency by one. Otherwise, create a new file key.
@@ -204,57 +207,90 @@ int readFile(char* fileName) {
 			printf("Same string\n");
 			fileTable* fileptr = ptr->files;
 			fileTable* fileprev = NULL;
-			int fileComparisonResult;
-			if (fileptr == NULL) {
-				fileComparisonResult = 0;
-			} else {
-				fileComparisonResult = strcmp(nameOfFile, fileptr->fileName);
-			}
-			while (fileComparisonResult > 0) {
-				printf("iterate\n");
+			int fileFound = 0;
+			/*
+			* Iterate through the entire file hashtable until the file is found or the end of the hashtable is reached.
+			*/
+			while (fileptr != NULL && fileFound == 0) {
+				/* 
+				* If the file name is found, increase frequency and then sort it so that it is in the correct position.
+				*/
+				if (strcmp(fileptr->fileName, nameOfFile) == 0) {
+					fileptr->frequency++;
+					free(nameOfFile);
+					fileTable* newptr = fileptr;
+					fileTable* newprev = NULL;
+					int positionFound = 0;
+					/*
+					* First, the fileptr is moved until it is in the appropriate frequency bracket. Then it is sorted alphabetically so that
+					* it is in the correct alphabetical position within its frequency bracket.
+					*/
+					while (newptr != NULL && positionFound == 0) {
+						printf("Error?\n");
+						if (newptr->frequency == fileptr->frequency && strcmp(newptr->fileName, fileptr->fileName) < 0) {
+							positionFound = 1;
+						}else if (newptr->frequency > fileptr->frequency) {
+							positionFound = 1;
+						} else {
+							newprev = newptr;
+							newptr = newptr->prev;
+						}
+					}
+					if (fileptr->next != NULL) {
+						fileptr->next->prev = fileptr->prev;
+					}
+					if (fileptr->prev != NULL) {
+						fileptr->prev->next = fileptr->next;
+					}
+					fileptr->next = newprev;
+					fileptr->prev = newptr;
+					if (newprev != NULL) {
+						newprev->prev = fileptr;
+					}
+					if (newptr != NULL) {
+						newptr->next = fileptr;
+					} else {
+						ptr->files = fileptr;
+					}
+					fileFound = 1;
+				}
 				fileprev = fileptr;
 				fileptr = fileptr->next;
-				if (fileptr == NULL) {
-					fileComparisonResult = 0;
-				} else {
-					fileComparisonResult = strcmp(nameOfFile, fileptr->fileName);
-				}
 			}
 			/*
-			* If the end of the file hashtable is reached and the file was not found, create a new file key at the end.
+			* If the file wasn't found, create a new file key and append it to the end of the file hashtable for that token. Then sort it so
+			* that it is in the correct alphabetical location.
 			*/
-			if (fileptr == NULL) {
-				fileTable* newFile = malloc(sizeof(nameOfFile));
-				newFile->fileName = nameOfFile;
-				newFile->frequency = 1;
-				newFile->next = NULL;
-				if (fileprev != NULL) {
-					fileprev->next = newFile;
-				} else {
-					ptr->files = newFile;
-				}
-			}
-			/*
-			* If the file is found, then increase its frequency. Because you didn't create a new file key, you can free nameOfFile.
-			*/
-			else if (fileComparisonResult == 0) {
-				fileptr->frequency++;
-				free(nameOfFile);
-				/*
-				* If the file name is greater than the file name of the current key, that means the current file name does not exist
-				* in the hashtable. Create a new file key and link it to the rest of the hashtable.
-				*/
-			} else {
+			if (fileFound == 0) {
+				fileptr = fileprev;
+				fileprev = NULL;
 				fileTable* newFile = malloc(sizeof(fileTable));
 				newFile->fileName = nameOfFile;
 				newFile->frequency = 1;
-				newFile->next = fileptr;
+				int positionFound = 0;
+				while (fileptr != NULL && positionFound == 0) {
+					if (fileptr->frequency == 1 && strcmp(fileptr->fileName, newFile->fileName) > 0) {
+						positionFound = 1;
+					}
+					else if (fileptr->frequency > 1) {
+						positionFound = 1;
+					} else {
+						fileprev = fileptr;
+						fileptr = fileptr->prev;
+					}
+				}
+				newFile->prev = fileptr;
+				newFile->next = fileprev;
 				if (fileprev != NULL) {
-					fileprev->next = newFile;
+					fileprev->prev = newFile;
+				}
+				if (fileptr != NULL){
+					fileptr->next = newFile;
 				} else {
 					ptr->files = newFile;
 				}
 			}
+			
 		/*
 		* If the string value of the next token is greater than the string value of the current string in the hashtable, then the next token
 		* is not in the hashtable. Create a new token key and create a new file hashtable for it.
@@ -275,8 +311,10 @@ int readFile(char* fileName) {
 				allStrings = newString;
 			}
 		}
+		printf("Getting next token\n");
 		// After checking for the given next token, get the next one.
 		nextToken = getToken(file);
+		printf("getting next token %s\n", nextToken);
 	}
 	//Close the file at the end of everything.
 	close(file);
@@ -362,8 +400,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(result == 0) {
-		char * input[1000];
-		char * newName[1000]; 
+		char * input = malloc(1000);
+		char * newName = malloc(1000); 
 
 		printf("An output file or with same the name already exists...\n");
 		printf("Would you like to override the file...?\n"); 
