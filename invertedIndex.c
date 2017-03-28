@@ -1,6 +1,12 @@
 #include "readAndWriteFile.h"
 #include "dirFunctions.h"
 
+typedef struct fileUnit {
+	char * fileName;
+	char * path;
+	struct fileUnit* next;
+} happywheel;
+
 static stringTable* allStrings;
 
 /*
@@ -24,8 +30,16 @@ int isDir(char * path) {
 /*
 */
 
+void multiple_files(char * path, char * fileName) {
+	return readFile(path,fileName);
+} 
+
 void search_dir(char * dir) {
 	
+	happywheel* root = NULL;
+	happywheel* trav = NULL;  
+
+	int count = 0; 
 	int index = 0;
 	char * fileName; 
 	
@@ -40,7 +54,8 @@ void search_dir(char * dir) {
 	while((entry = readdir(directory)) != NULL){  		
 		printf("Enter loop\n");
 		fileName = entry->d_name;
-		char * next = (char*) malloc(1 + strlen(fileName) + strlen(dir));
+		printf("%s\n", "I'm looking at" + *fileName);
+		char * next = (char*) malloc(2 + strlen(fileName) + strlen(dir));
 		
 		strcpy(next,dir);  
 		
@@ -53,21 +68,55 @@ void search_dir(char * dir) {
 			int result = isDir(next);
 			printf("%d\n", result); 
 			
-			if(result == 1) {
+			if(result == 1) { //if directory
 				search_dir(next);
-			} else if(result == 0) {
-				printf("HIIIIIIII\n");
-				printf("Local filename is:");	
-				printf("%s\n", fileName);
-				return readFile(next,fileName);
+			} else if(result == 0) { //if file
+				//Count all files in this subdirectory and create a new struct list. 
+				count++;
+				happywheel* myfile = (happywheel*)malloc(1 + sizeof(happywheel)); 
+				myfile->fileName = (char*)malloc(strlen(fileName));
+				myfile->path = (char*) malloc(1 + strlen(fileName) + strlen(dir));
+				
+				strcpy(myfile->path, next); 
+				strcpy(myfile->fileName, fileName);
+				//printf("%s\n", myfile->fileName); 
+				printf("Here...\n");
+				printf("%d\n", count); 
+				
+				//Create linked list
+				
+				if(count <= 1) { 
+					printf("Enter top...\n");
+					root = myfile;
+					printf("1\n");
+					root->next = NULL;
+					printf("2\n");
+					trav = root;
+					printf("Created...\n");  
+				} else {
+					printf("Enter bottom...\n");
+					trav->next = myfile;
+					trav = trav->next;
+					trav->next = NULL; 					
+				}
+				
 			}
 		}	
+
+		
 
 		free(next);
 		printf("Hello\n");			
 
 		printf("End of loop\n"); 
 	} 
+	
+	while(root != NULL) {
+		printf("I'm in here...\n");
+		printf("%s\n", root->fileName);
+		multiple_files(root->path, root->fileName);
+		root = root->next;
+	}
 
 	closedir(directory);	
 }
@@ -191,7 +240,7 @@ int readFile(char* fileName, char* local_fileName) {
 
 		if (ptr == NULL) {
 			printf("Reached end of hashtable\n");
-			fileTable* newFile = malloc(sizeof(fileTable));
+			fileTable* newFile = (fileTable*) malloc(sizeof(fileTable));
 		
 			newFile->fileName = local_fileName;
 			newFile->frequency = 1;
@@ -462,9 +511,29 @@ int writeFile(char* fileName, stringTable* hashtable) {
 	return 1;
 }
 
-void freeAll(stringTable* strTable) {
 
 
+
+void freeAll() {
+	stringTable* str_table;	
+	stringTable* str_next; 
+	fileTable* ptr; 
+	fileTable* next; 
+
+	ptr = allStrings->files;
+	str_table = allStrings;
+
+	while(str_table != NULL) {
+		while(ptr != NULL){ //For one string
+			next = ptr->next;
+			free(ptr); 
+			ptr = next;
+		}
+		str_next = str_table->next;
+		free(str_table);
+		str_table = str_next;
+	}
+	printf("Freed all\n"); 
 }
 
 
@@ -532,6 +601,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	writeFile(outputFile, allStrings);
-
+	freeAll();
 	return 1;
 }
