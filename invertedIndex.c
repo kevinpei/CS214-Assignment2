@@ -56,10 +56,7 @@ void search_dir(char * dir) {
 			if(result == 1) {
 				search_dir(next);
 			} else if(result == 0) {
-				printf("HIIIIIIII\n");
-				printf("Local filename is:");	
-				printf("%s\n", fileName);
-				readFile(next,fileName);
+				readFile(next);
 			}
 		}	
 
@@ -113,20 +110,14 @@ char* getToken(int file) {
 * This function takes the string representation of a file name and opens it and reads it. It opens the file in read mode 
 * and iterates through one character at a time to get each string token. It adds these strings to the allStrings stringMap.
 */
-int readFile(char* fileName, char* local_fileName) {
-	printf("READING\n");
-	printf("%s\n", "Local name is: ");
-	printf(local_fileName);
-	printf("%s\n", "Path is: ");
-	printf(fileName);
-
+int readFile(char* fileName) {
 	int i = 0;
 	/*
 	* This converts the file name to all lower case.
 	*/
 	char* nameOfFile = malloc(strlen(fileName) + 1);
 	while (i < strlen(fileName)) {
-		//printf("Changing character %d\n", i);
+		printf("Changing character %d\n", i);
 		nameOfFile[i] = tolower(fileName[i]);
 		i++;
 	}
@@ -186,19 +177,17 @@ int readFile(char* fileName, char* local_fileName) {
 		if (ptr == NULL) {
 			printf("Reached end of hashtable\n");
 			fileTable* newFile = malloc(sizeof(fileTable));
-		
-			newFile->fileName = local_fileName;
+			printf("uh\n");
+			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
 			newFile->next = NULL;
 			newFile->prev = NULL;
-			
+			printf("Garn\n");
 			stringTable* newString = malloc(sizeof(stringTable));
 			newString->string = nextToken;
 			newString->files = newFile;
 			newString->next = NULL;
-			printf("World goes boom \n");
-			printf("%s\n",newString->files->fileName);
-			
+			printf("Is something wrong\n");
 			if (prev != NULL) {
 				prev->next = newString;
 			} else {
@@ -210,7 +199,7 @@ int readFile(char* fileName, char* local_fileName) {
 			* If it is, increment the frequency by one. Otherwise, create a new file key.
 			*/
 		} else if (comparisonResult == 0) {
-			//printf("Same string\n");
+			printf("Same string\n");
 			fileTable* fileptr = ptr->files;
 			fileTable* fileprev = NULL;
 			int fileFound = 0;
@@ -221,61 +210,29 @@ int readFile(char* fileName, char* local_fileName) {
 				/* 
 				* If the file name is found, increase frequency and then sort it so that it is in the correct position.
 				*/
-				printf("Crash here?\n");
-				
-
-
-				if (strcmp(fileptr->fileName, local_fileName) == 0) { //local_fileName used to be nameOfFile
-					printf("THIS\n");
-					printf("%s\n",fileptr->fileName); 
-					printf("%s\n", local_fileName);
-					(fileptr->frequency)++;
-
-
-
-					printf("%s\n","Frequency is: " + fileptr->frequency);
+				if (strcmp(fileptr->fileName, nameOfFile) == 0) {
+					fileptr->frequency++;
 					free(nameOfFile);
 					fileTable* newptr = fileptr;
-					//fileTable* newprev = NULL; //THIS LINE causes segfault. 
-					fileTable* newprev = (fileTable*) malloc(sizeof(fileTable));
+					fileTable* newprev = NULL;
 					int positionFound = 0;
 					/*
-					* First, the fileptr is moved until it is in the appropriate frequency bracket. Then it is sorted 						* alphabetically so that
+					* First, the fileptr is moved until it is in the appropriate frequency bracket. Then it is sorted alphabetically so that
 					* it is in the correct alphabetical position within its frequency bracket.
 					*/
-
-					//THERE IS SOMETHING WRONG WITH THIS WHILE LOOP							
-					printf("Before loop...\n");
-					
-					while (newptr != NULL && positionFound == 0) { // At this line newptr should equal fileptr
-						//printf("Looping...");						
-						//printf("%s\n",newptr->frequency);						
-
-						//First conditional deals with same frequency but different names. newptr->fileName comes 
-						//before 
+					while (newptr != NULL && positionFound == 0) {
 						if (newptr->frequency == fileptr->frequency && strcmp(newptr->fileName, fileptr->fileName) < 0) {
 							printf("Compared %s and %s\n", newptr->fileName, fileptr->fileName);
 							printf("Found correct bracket\n");
 							positionFound = 1;
-							printf("Block 1...\n");
-						}else if (newptr->frequency > fileptr->frequency) { // If the frequency of the ptr is greater than 
+						}else if (newptr->frequency > fileptr->frequency) {
 							printf("Missed bracket\n");
 							positionFound = 1;
-							printf("Block 2...\n");
-						} else { //This loop will run at the beginning of a new token.
+						} else {
 							newprev = newptr;
 							newptr = newptr->prev;
-
-							if(newptr != NULL) {
-								printf("Well shit..."); 
-							}
-
-							printf("Block 3...\n");
 						}
 					}
-
-
-					printf("Maybe...\n");
 					if (positionFound == 1) {
 						printf("Found a position\n");
 						if (fileptr->next != NULL) {
@@ -327,7 +284,7 @@ int readFile(char* fileName, char* local_fileName) {
 				fileptr = fileprev;
 				fileprev = NULL;
 				fileTable* newFile = malloc(sizeof(fileTable));
-				newFile->fileName = local_fileName;
+				newFile->fileName = nameOfFile;
 				newFile->frequency = 1;
 				int positionFound = 0;
 				while (fileptr != NULL && positionFound == 0) {
@@ -360,7 +317,7 @@ int readFile(char* fileName, char* local_fileName) {
 		*/
 		} else {
 			fileTable* newFile = malloc(sizeof(fileTable));
-			newFile->fileName = local_fileName;
+			newFile->fileName = nameOfFile;
 			newFile->frequency = 1;
 			newFile->next = NULL;
 			stringTable* newString = malloc(sizeof(stringTable));
@@ -422,8 +379,6 @@ int writeFile(char* fileName, stringTable* hashtable) {
 		fileTable* fileptr = ptr->files;
 		while (fileptr != NULL) {
 			nextLine = malloc(strlen(fileptr->fileName) + 100);
-			printf("WOOOOOO\n");
-			printf("%s\n", fileptr->fileName);
 			sprintf(nextLine, "\t\t<file name=\"%s\">%d</file>\n", fileptr->fileName, fileptr->frequency);
 			write(file, nextLine, strlen(nextLine));
 			fileptr = fileptr->next;
@@ -444,12 +399,6 @@ int writeFile(char* fileName, stringTable* hashtable) {
 	close(file);
 	return 1;
 }
-
-void freeAll(stringTable* strTable) {
-
-
-}
-
 
 int main(int argc, char *argv[]) {
 
@@ -503,7 +452,7 @@ int main(int argc, char *argv[]) {
 		search_dir(searchTarget); 	
 	} else if (result == 0) {
 		printf("IS FILE");
-		readFile(searchTarget,searchTarget); 
+		readFile(searchTarget); 
 	} else {
 		printf("Invalid second argument. Ending program...\n"); 
 	}
