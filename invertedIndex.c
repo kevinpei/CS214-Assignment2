@@ -129,8 +129,8 @@ void search_dir(char * dir) {
 */
 char* getToken(int file) {
 	int currentSize = 0;
-	int maxSize = 5;
-	char* nextToken = malloc(maxSize);
+	char* buffer = malloc(1000);
+	
 	char* nextChar = malloc(1);
 	// Iterates through the file until an alphabetical character is reached.
 	while (!isalpha(*nextChar)) {
@@ -142,18 +142,13 @@ char* getToken(int file) {
 	}
 	// Add all subsequent alphanumerical characters to the token.
 	while (isalnum(*nextChar)) {
-		nextToken[currentSize] = tolower(*nextChar);
+		buffer[currentSize] = tolower(*nextChar);
 		currentSize++;
-		// Dynamically reallocate memory if the current size is exceeded.
-		if (currentSize > maxSize) {
-			nextToken = realloc(nextToken, maxSize + 5);
-		}
 		read(file, nextChar, 1);
 	}
-	if (currentSize > maxSize) {
-		nextToken = realloc(nextToken, maxSize + 1);
-		currentSize++;
-	}
+	buffer[currentSize] = '\0';
+	char* nextToken = malloc(currentSize + 1);
+	strncpy(nextToken, buffer, currentSize);
 	nextToken[currentSize] = '\0';
 	return nextToken;
 }
