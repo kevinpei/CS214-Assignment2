@@ -27,5 +27,5 @@ typedef struct _stringTable {
 } stringTable;
 
 char* getToken(int file);
-int readFile(char* fileName);
+int readFile(char* fileName,char * local_fileName);
 int writeFile(char* fileName, stringTable* hashtable);

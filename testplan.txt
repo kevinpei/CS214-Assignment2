@@ -1,0 +1,238 @@
+Kenneth Zhang and Kevin Pei 
+CS 214: Systems Programming
+Test Plan Document 
+
+Tests for Correctness 
+
+==================================================================================================
+
+Test Case 1:
+
+Directory: directory1
+=================================================
+SUB-FILES AND SUB-DIRECTORIES: 
+
+Files in directory 1: file1, file2, file3 
+
+=================================================
+CONTENT
+
+Contents of directory1/file1:
+
+I like pickles.
+I love pickles.
+Shoe
+
+Contents of directory1/file2:
+
+fwd re fwd re fwd re fwd re fwd re fwd re fwd re fwd re
+fwd re fwd re fwd re fwd re fwd re fwd re fwd re fwd re
+
+
+Contents of directory1/file3: 
+
+yes
+
+
+=================================================
+
+Resulting XML:
+
+==================================================================================================
+
+Test Case 2: 
+
+Directory: directory2 
+
+=================================================
+SUB-FILES/SUB-DIRECTORIES
+
+
+Files in directory2: file1 
+
+Subdirectories in directory2:  sub_dir1
+
+Files in subdirectory sub_dir1: file1
+
+
+=================================================
+CONTENT
+
+
+Contents of directory2/file1:
+
+You are a cat
+
+Contents of directory2/sub_dir1/file1:
+
+Cat cat cat
+
+
+=================================================
+RESULTING XML
+
+
+==================================================================================================
+
+Test Case 3:
+
+Directory: directory3 
+
+=================================================
+SUB-FILES AND SUB-DIRECTORIES 
+
+Files under directory3: file1, file2, file3
+Directories under directory3: sub_dir1, sub_dir2
+
+Files under sub_dir1: file1
+Files under sub_dir2: file1, file2
+
+
+=================================================
+CONTENT
+
+Content for directory3/file1
+
+Hello world. 
+
+Content for directory3/sub_dir1/file1
+
+HELLO HELLO HELLO HELLO
+
+Content for directory3/sub_dir2/file1
+
+WORLD WORLD WORLD
+
+Content for directory3/sub_dir2/file2
+
+... 
+
+=================================================
+RESULTING XML
+
+==================================================================================================
+
+Test Case 4:
+
+Directory: directory4 
+
+=================================================
+SUB-FILES AND SUB-DIRECTORIES 
+
+Subdirectories for directory4: sub1, sub2, sub3
+
+Files under directory4/sub1: file1
+Files under directory4/sub2: file1
+Files under directory3/sub3: file1 
+
+=================================================
+CONTENT
+
+Content for directory4/sub1/file1
+
+HI#HI#HI#HI#HI#
+
+Content for directory4/sub2/file1
+
+#dog#dog#dog#dog#dog 
+
+Content for directory4/sub3/file3
+
+dog dog dog dog dog
+
+=================================================
+RESULTING XML
+
+==================================================================================================
+
+Test Case 5:
+
+Directory: directory5  
+
+=================================================
+SUB-FILES AND SUB-DIRECTORIES 
+
+ 
+Sub-Directories under directory5: sub1
+Sub-Directories under directory5/sub1: sub_sub1:
+Files under directory5: boop
+Files under directory5/sub1/sub_sub1: beep 
+=================================================
+CONTENT
+
+Content in directory5/boop:
+
+Go Go Power Rangers 
+
+Content in directory5/sub1/sub_sub1:  
+
+Rangers Power Go Go
+
+=================================================
+RESULTING XML
+
+==================================================================================================
+
+
+Test Case 6:
+
+Directory: directory6   
+
+=================================================
+SUB-FILES AND SUB-DIRECTORIES 
+
+Sub-Directories under directory6: sub1
+Files under directory6: muns
+Files under directory6/sub1: teMM tEmm tEmm 
+
+=================================================
+CONTENT
+
+Content in directory6/file1:
+
+hOi, name teMM 
+
+ 
+Content in directory6/sub1/floop
+
+teMm TeMM and teMMIE 
+
+
+Content in directory6/sub1/flip
+
+go colleg, make muns for teMM and tEMM
+
+
+Content in directory6/sub1/flop 
+
+temm go cOlleg 
+
+=================================================
+RESULTING XML
+
+
+
+==================================================================================================
+
+
+
+Tests for Robustness: 
+
+
+
+Test Case 7:
+
+Directory:  
+
+=================================================
+SUB-FILES AND SUB-DIRECTORIES 
+
+
+=================================================
+CONTENT
+
+
+=================================================
+RESULTING XML
+
+==================================================================================================
