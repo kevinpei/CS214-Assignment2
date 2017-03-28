@@ -59,7 +59,7 @@ void search_dir(char * dir) {
 				printf("HIIIIIIII\n");
 				printf("Local filename is:");	
 				printf("%s\n", fileName);
-				readFile(next,fileName);
+				return readFile(next,fileName);
 			}
 		}	
 
@@ -114,6 +114,7 @@ char* getToken(int file) {
 * and iterates through one character at a time to get each string token. It adds these strings to the allStrings stringMap.
 */
 int readFile(char* fileName, char* local_fileName) {
+	
 	printf("READING\n");
 	printf("%s\n", "Local name is: ");
 	printf(local_fileName);
@@ -125,11 +126,13 @@ int readFile(char* fileName, char* local_fileName) {
 	* This converts the file name to all lower case.
 	*/
 	char* nameOfFile = malloc(strlen(fileName) + 1);
+
 	while (i < strlen(fileName)) {
 		printf("Changing character %d\t", i);
 		nameOfFile[i] = tolower(fileName[i]);
 		i++;
 	}
+	
 	nameOfFile[i] = '\0';
 	printf("Opening %s\n", fileName);
 	int file = open(fileName, O_RDONLY);
@@ -170,6 +173,7 @@ int readFile(char* fileName, char* local_fileName) {
 		} else {
 			comparisonResult = strcmp(nextToken, ptr->string);
 		}
+		
 		while (comparisonResult > 0) {
 			prev = ptr;
 			ptr = ptr->next;
@@ -179,10 +183,12 @@ int readFile(char* fileName, char* local_fileName) {
 				comparisonResult = strcmp(nextToken, ptr->string);
 			}
 		}
+
 		/*
 		* If ptr is NULL, that means the end of the hashtable has been reached. In that case, insert a new key at the end with the name
 		* of the next token and a new file hashtable object that contains just this file with frequency 1. 
 		*/
+
 		if (ptr == NULL) {
 			printf("Reached end of hashtable\n");
 			fileTable* newFile = malloc(sizeof(fileTable));
@@ -236,8 +242,9 @@ int readFile(char* fileName, char* local_fileName) {
 					printf("%s\n","Frequency is: " + fileptr->frequency);
 					free(nameOfFile);
 					fileTable* newptr = fileptr;
-					fileTable* newprev = NULL; //THIS LINE causes segfault. 
-					//fileTable* newprev = (fileTable*) malloc(sizeof(fileTable));
+					//fileTable* newprev = NULL; 
+					//THIS LINE causes segfault. 
+					fileTable* newprev = (fileTable*) malloc(sizeof(fileTable));
 					int positionFound = 0;
 					/*
 					* First, the fileptr is moved until it is in the appropriate frequency bracket. Then it is sorted 						* alphabetically so that
