@@ -174,7 +174,7 @@ int readFile(char* fileName, char* local_fileName) {
 
 	while (i < strlen(fileName)) {
 		printf("Changing character %d\t", i);
-		nameOfFile[i] = tolower(fileName[i]);
+		nameOfFile[i] = fileName[i];
 		i++;
 	}
 	
