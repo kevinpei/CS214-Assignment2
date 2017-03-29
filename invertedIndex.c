@@ -1,60 +1,62 @@
 #include "readAndWriteFile.h"
 #include "dirFunctions.h"
 
-typedef struct fileUnit {
-	char * fileName;
-	char * path;
-	struct fileUnit* next;
-} happywheel;
-
 static stringTable* allStrings;
 
 /*
-* This function returns the next token in the given file. It first mallocs 5 bytes and keeps track of the size of the token. 
+* This function checks whether the given path leads to a file or directory. It returns 1 if the given path leads
+* to a directory, 0 if the given path leads to a file, and -1 otherwise.
 */
 int isDir(char * path) {
         struct stat buf;
         stat(path, &buf);
 
+		// Returns 1 if the path leads to a directory
         if(S_ISDIR(buf.st_mode) == 1) {
-                return 1;
+            return 1;
+		// Returns 0 if the path leads to a file
         } else if(S_ISREG(buf.st_mode) == 1) {
-                return 0;
+            return 0;
+		// Returns -1 otherwise
         } else {
-                return -1;
+            return -1;
         }
 
 	return S_ISDIR(buf.st_mode);
 }
 
 /*
+* This function simply reads each file in the directory. It takes the current path and file name and reads it.
+* This function is meant to create a new stack for each read file so that the stack does not overflow.
 */
-
-void multiple_files(char * path, char * fileName) {
+int multiple_files(char * path, char * fileName) {
 	return readFile(path,fileName);
 } 
 
+/*
+* This function searches the given directory recursively. It returns each file in the given directory and if another
+* directory is found within, it calls search_dir on that directory recursively.
+*/
 void search_dir(char * dir) {
 	
-	happywheel* root = NULL;
-	happywheel* trav = NULL;  
+	fileUnit* root = NULL;
+	fileUnit* trav = NULL;  
 
 	int count = 0; 
 	int index = 0;
 	char * fileName; 
 	
-	printf("Here...\n");
 	struct dirent *entry;
 	DIR * directory;
-
-	if((directory = opendir(dir)) == NULL) {
-		printf("Do this\n");
-	} 
  
+	directory = opendir(dir);
+ 
+	/*
+	* Iterate through the entire directory until the end is reached.
+	*/
 	while((entry = readdir(directory)) != NULL){  		
-		printf("Enter loop\n");
 		fileName = entry->d_name;
-		printf("%s\n", "I'm looking at" + *fileName);
+		// Allocates memory to store the next path name to check
 		char * next = (char*) malloc(2 + strlen(fileName) + strlen(dir));
 		
 		strcpy(next,dir);  
@@ -63,38 +65,29 @@ void search_dir(char * dir) {
 			
 			strcat(next,"/");
 			strcat(next, fileName); 
-			printf("%s\n", next); 
 		
 			int result = isDir(next);
-			printf("%d\n", result); 
 			
-			if(result == 1) { //if directory
+			//if directory, recurse and call this function again on that directory
+			if(result == 1) { 
 				search_dir(next);
-			} else if(result == 0) { //if file
+				//if file, create a new fileUnit to hold that file
+			} else if(result == 0) { 
 				//Count all files in this subdirectory and create a new struct list. 
 				count++;
-				happywheel* myfile = (happywheel*)malloc(1 + sizeof(happywheel)); 
+				fileUnit* myfile = (fileUnit*)malloc(1 + sizeof(fileUnit)); 
 				myfile->fileName = (char*)malloc(strlen(fileName));
 				myfile->path = (char*) malloc(1 + strlen(fileName) + strlen(dir));
 				
 				strcpy(myfile->path, next); 
 				strcpy(myfile->fileName, fileName);
-				//printf("%s\n", myfile->fileName); 
-				printf("Here...\n");
-				printf("%d\n", count); 
-				
+
 				//Create linked list
-				
 				if(count <= 1) { 
-					printf("Enter top...\n");
 					root = myfile;
-					printf("1\n");
 					root->next = NULL;
-					printf("2\n");
 					trav = root;
-					printf("Created...\n");  
 				} else {
-					printf("Enter bottom...\n");
 					trav->next = myfile;
 					trav = trav->next;
 					trav->next = NULL; 					
@@ -104,26 +97,24 @@ void search_dir(char * dir) {
 		}	
 
 		free(next);
-		printf("Hello\n");			
-
-		printf("End of loop\n"); 
 	} 
 	
+	// At the very end, read the file linked list
 	while(root != NULL) {
-		printf("I'm in here...\n");
-		printf("%s\n", root->fileName);
 		multiple_files(root->path, root->fileName);
 		root = root->next;
 	}
-
+	
+	// Close the directory
 	closedir(directory);	
 }
 
 /*
-* This function returns the next token in the given file. It first mallocs 5 bytes and keeps track of the size of the token.
+* This function returns the next token in the given file. It first mallocs 1000 bytes as a buffer to store the token as it is created.
 * It goes through the file one char at a time, and starts when an alphabetical character is reached. If the end of file is reached
 * before then, this function returns NULL. Otherwise, the token expands to contain all alphanumerical values afterwards and stops
-* when it reaches a non-alphanumerical value. Then the function returns that token.
+* when it reaches a non-alphanumerical value. Then the function moves the buffer into a new token string malloced to be the size of the
+* string. The buffer is then freed and the new token returned.
 */
 char* getToken(int file) {
 	int currentSize = 0;
@@ -136,7 +127,6 @@ char* getToken(int file) {
 	while (!isalpha(*nextChar)) {
 		// If the end of the file is reached before another token is found, then return NULL.
 		if (read(file, nextChar, 1) == 0) {
-			printf("End of file\n");
 			return NULL;
 		}
 	}
@@ -159,29 +149,19 @@ char* getToken(int file) {
 * and iterates through one character at a time to get each string token. It adds these strings to the allStrings stringMap.
 */
 int readFile(char* fileName, char* local_fileName) {
-	
-	printf("READING\n");
-	printf("%s\n", "Local name is: ");
-	printf(local_fileName);
-	printf("%s\n", "Path is: ");
-	printf(fileName);
 
 	int i = 0;
 	/*
-	* This converts the file name to all lower case.
+	* This stores the file in a new malloced object so that it can be retrieved later.
 	*/
 	char* nameOfFile = malloc(strlen(fileName) + 1);
-
 	while (i < strlen(fileName)) {
-		printf("Changing character %d\t", i);
 		nameOfFile[i] = fileName[i];
 		i++;
 	}
 	
 	nameOfFile[i] = '\0';
-	printf("Opening %s\n", fileName);
 	int file = open(fileName, O_RDONLY);
-	printf("%s opened\n", nameOfFile);
 	/*
 	* If the file does not exist, throw an error and return.
 	*/
@@ -191,18 +171,16 @@ int readFile(char* fileName, char* local_fileName) {
 	}
 	//Fetch the next token in the file. 
 	char* nextToken = getToken(file);
-	printf("Tokenizer worked: Token is %s\n", nextToken);
 	/*
 	* Keep iterating through the tokens in the current file until it's NULL. This means that there are no more tokens
 	* in the file.
 	*/
 	while (nextToken != NULL) {
-		printf("Next token is %s\n", nextToken);
 		// Allocates memory and defines a new nameOfFile string to be stored if a new file key is created.
 		nameOfFile = malloc(strlen(fileName) + 1);
 		i = 0;
 		while (i < strlen(fileName)) {
-			nameOfFile[i] = tolower(fileName[i]);
+			nameOfFile[i] = fileName[i];
 			i++;
 		}
 		nameOfFile[i] = '\0';
@@ -218,7 +196,7 @@ int readFile(char* fileName, char* local_fileName) {
 		} else {
 			comparisonResult = strcmp(nextToken, ptr->string);
 		}
-		
+		// While the current pointer's string is less than the next token, keep advancing forward until you find where the token should be.
 		while (comparisonResult > 0) {
 			prev = ptr;
 			ptr = ptr->next;
@@ -235,7 +213,6 @@ int readFile(char* fileName, char* local_fileName) {
 		*/
 
 		if (ptr == NULL) {
-			printf("Reached end of hashtable\n");
 			fileTable* newFile = (fileTable*) malloc(sizeof(fileTable));
 		
 			newFile->fileName = local_fileName;
@@ -247,21 +224,17 @@ int readFile(char* fileName, char* local_fileName) {
 			newString->string = nextToken;
 			newString->files = newFile;
 			newString->next = NULL;
-			printf("World goes boom \n");
-			printf("%s\n",newString->files->fileName);
 			
 			if (prev != NULL) {
 				prev->next = newString;
 			} else {
 				allStrings = newString;
 			}
-			printf("What's happening\n");
 			/*
 			* If the next token is already in the string hashtable, iterate through its file hashtable to see if this file is present there.
 			* If it is, increment the frequency by one. Otherwise, create a new file key.
 			*/
 		} else if (comparisonResult == 0) {
-			//printf("Same string\n");
 			fileTable* fileptr = ptr->files;
 			fileTable* fileprev = NULL;
 			int fileFound = 0;
@@ -274,59 +247,32 @@ int readFile(char* fileName, char* local_fileName) {
 				*/
 
 				if (strcmp(fileptr->fileName, local_fileName) == 0) { //local_fileName used to be nameOfFile
-					printf("THIS\n");
-					printf("%s\n",fileptr->fileName); 
-					printf("%s\n", local_fileName);
 					(fileptr->frequency)++;
-
-
-
-					printf("%s\n","Frequency is: " + fileptr->frequency);
 					free(nameOfFile);
 					fileTable* newptr = fileptr;
 					fileTable* newprev = NULL; 
-					//THIS LINE causes segfault. 
-					//fileTable* newprev = (fileTable*) malloc(sizeof(fileTable));
 					int positionFound = 0;
 					/*
-					* First, the fileptr is moved until it is in the appropriate frequency bracket. Then it is sorted 						* alphabetically so that
-					* it is in the correct alphabetical position within its frequency bracket.
+					* First, the fileptr is moved until it is in the appropriate frequency bracket. Then it is sorted 						
+					* alphabetically so that it is in the correct alphabetical position within its frequency bracket.
 					*/
-
-					//THERE IS SOMETHING WRONG WITH THIS WHILE LOOP							
-					printf("Before loop...\n");
-					
 					while (newptr != NULL && positionFound == 0) { // At this line newptr should equal fileptr
-						//printf("Looping...");						
-						//printf("%s\n",newptr->frequency);						
-
+					
 						//First conditional deals with same frequency but different names. newptr->fileName comes 
 						//before 
 						if (newptr->frequency == fileptr->frequency && strcmp(newptr->fileName, fileptr->fileName) < 0) {
-							printf("Compared %s and %s\n", newptr->fileName, fileptr->fileName);
-							printf("Found correct bracket\n");
 							positionFound = 1;
-							printf("Block 1...\n");
-						}else if (newptr->frequency > fileptr->frequency) { // If the frequency of the ptr is greater than 
-							printf("Missed bracket\n");
+							// If the frequency of the ptr is greater than
+						}else if (newptr->frequency > fileptr->frequency) {  
 							positionFound = 1;
-							printf("Block 2...\n");
-						} else { //This loop will run at the beginning of a new token.
+							//This loop will run at the beginning of a new token.
+						} else { 
 							newprev = newptr;
 							newptr = newptr->prev;
-
-							if(newptr != NULL) {
-								printf("Well shit..."); 
-							}
-
-							printf("Block 3...\n");
 						}
 					}
-
-
-					printf("Maybe...\n");
+					// If a new position to move the file in the linked list is found, then do some pointer arithmetic.
 					if (positionFound == 1) {
-						printf("Found a position\n");
 						if (fileptr->next != NULL) {
 							if (fileptr->prev != fileptr) {
 								fileptr->next->prev = fileptr->prev;
@@ -343,16 +289,17 @@ int readFile(char* fileName, char* local_fileName) {
 							}
 							fileptr->prev = newptr;
 						}
-						printf("prev is %s\n", newptr->fileName);
-						printf("This is %s\n", fileptr->fileName);
 						if (fileptr != newprev) {
 							if (newprev != NULL) {
 								newprev->prev = fileptr;
 							}
 							fileptr->next = newprev;
 						}
+						/*
+						* If a position is not found, then that means that this file has the highest frequency for this
+						* token. Do some pointer arithmetic and set this equal to the first file in the token's file hashtable.
+						*/
 					} else {
-						printf("Reached the end\n");
 						if (fileptr->next != NULL) {
 							if (fileptr->prev != fileptr) {
 								fileptr->next->prev = fileptr->prev;
@@ -382,7 +329,6 @@ int readFile(char* fileName, char* local_fileName) {
 			* that it is in the correct alphabetical location.
 			*/
 			if (fileFound == 0) {
-				printf("File not found\n");
 				fileptr = fileprev;
 				fileprev = NULL;
 				fileTable* newFile = malloc(sizeof(fileTable));
@@ -406,7 +352,6 @@ int readFile(char* fileName, char* local_fileName) {
 					fileprev->prev = newFile;
 				}
 				if (fileptr != NULL){
-					printf("Changing the next file\n");
 					fileptr->next = newFile;
 				} else {
 					ptr->files = newFile;
@@ -449,22 +394,14 @@ int writeFile(char* fileName, stringTable* hashtable) {
 	* Create a new file in read or write mode with all permissions.
 	*/
 	int file = open(fileName, O_CREAT | O_WRONLY, S_IRUSR | S_IRGRP | S_IROTH);
-	// If file isn't -1, that means a file with the same name already exists.
-/*	if (file != -1) {
-		printf("This file already exists.\n");
-		close(file);
-		return -1;
-	}
 	/*
 	* Create a hashtable ptr to iterate through the string hashtable. Also include a nextLine string that will be written into
 	* the file and change its value to change what will be written into the file.
 	*/
 	stringTable* ptr = hashtable;
 	char* nextLine = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-	printf("Writing 1\n");
 	write(file, nextLine, strlen(nextLine));
 	nextLine = "<fileIndex>\n";
-	printf("Writing 2\n");
 	write(file, nextLine, strlen(nextLine));
 	/*
 	* Iterate through the hashtable until the end is reached. For each node in the hashtable, create the appropriate XML tags.
@@ -472,7 +409,6 @@ int writeFile(char* fileName, stringTable* hashtable) {
 	while (ptr != NULL) {
 		nextLine = malloc(strlen(ptr->string) + 100);
 		sprintf(nextLine, "\t<word text=\"%s\">\n", ptr->string);
-		printf("Writing %s\n", ptr->string);
 		write(file, nextLine, strlen(nextLine));
 		free(nextLine);
 		/*
@@ -481,8 +417,6 @@ int writeFile(char* fileName, stringTable* hashtable) {
 		fileTable* fileptr = ptr->files;
 		while (fileptr != NULL) {
 			nextLine = malloc(strlen(fileptr->fileName) + 100);
-			printf("WOOOOOO\n");
-			printf("%s\n", fileptr->fileName);
 			sprintf(nextLine, "\t\t<file name=\"%s\">%d</file>\n", fileptr->fileName, fileptr->frequency);
 			write(file, nextLine, strlen(nextLine));
 			fileptr = fileptr->next;
@@ -504,6 +438,9 @@ int writeFile(char* fileName, stringTable* hashtable) {
 	return 1;
 }
 
+/*
+* This function frees everything that was malloced in this code.
+*/
 void freeAll() {
 	stringTable* str_table;	
 	stringTable* str_next; 
@@ -513,23 +450,27 @@ void freeAll() {
 	ptr = allStrings->files;
 	str_table = allStrings;
 
+	// For each token...
 	while(str_table != NULL) {
-		while(ptr != NULL){ //For one string
+		// For each fileTable object, free it
+		while(ptr != NULL){
 			next = ptr->next;
 			free(ptr); 
 			ptr = next;
 		}
+		// Free each token after freeing its file hashtable
 		str_next = str_table->next;
 		free(str_table);
 		str_table = str_next;
 	}
-	printf("Freed all\n"); 
 }
 
 int main(int argc, char *argv[]) {
 
-	if(argc < 3) {
-		printf("You did not pass enough arguments. Please indicate inverted_index file and target file/directory...\n"); 
+	// If there aren't enough arguments, then exit the program.
+	if(argc != 3) {
+		printf("You did not pass enough arguments. Please indicate inverted_index file and target file/directory. Exiting now..\n"); 
+		return;
 	}	
 
 	char * outputFile = argv[1]; 
@@ -538,38 +479,38 @@ int main(int argc, char *argv[]) {
 	char * input = (char*)malloc(1000);
 	char * newName = (char*)malloc(1000); 
 
-
-
+	// Tests what the name of the output file corresponds to; already existing directory, already existing file, or new file
 	int result = isDir(outputFile); 	
 	
+	// If the output file is a directory, exit
 	if(result == 1) {
 		printf("Your output file matches the same name as an existing directory. Exiting now...\n"); 
 		return;
 	}
 
+	// If the output file already exists, ask if you want to overwrite it
 	if(result == 0) {
-		
-
 		printf("An output file or with same the name already exists...\n");
 		printf("Would you like to override the file...?\n"); 
 		printf("Enter 'y' to override or 'n' to choose another name or press Ctrl-C to exit the program...\n");
  			
+		// Keep looping until break
 		while(1) {
 			scanf("%s",input); 
+			// If the input is 'y' or 'n', continue, otherwise ask for input again
 			if(!strcmp(input, "y") || !strcmp(input, "n")) {
+				// If input is 'y', delete old file and replace it with a new one
 				if(!strcmp(input, "y")) {
 					printf("Overriding...\n");
 					remove(outputFile);
-					//writeFile(outputFile, allStrings);
 					break; 	
+					// If input is 'n', ask for a new name
 				} else if (!strcmp(input, "n")) {
 					while(1) {
 						printf("Choose a new name for your file...\n");
 						scanf("%s", newName);
-					
-						//int x = isDir(newName);
-						printf("%d\n", newName); 
 
+						// If the given name also exists, ask for another name
 						if(isDir(newName) == -1) {
 							outputFile = newName; 						
 							break; 	
@@ -587,21 +528,15 @@ int main(int argc, char *argv[]) {
 
 	result = isDir(searchTarget);
 		
+	// Depending on whether the input file is a directory or file, either recurse or read it
 	if(result == 1) {
 		search_dir(searchTarget); 	
 	} else if (result == 0) {
-		printf("IS FILE");
 		readFile(searchTarget,searchTarget); 
 	} else {
 		printf("Invalid second argument. Ending program...\n"); 
 	}
-
-	stringTable* ptr = allStrings;
-	while (ptr != NULL) {
-		printf("%s files: %s %d\n", ptr->string, ptr->files->fileName, ptr->files->frequency);
-		ptr = ptr->next;
-	}
-
+	// At the end, write everything to file and free it
 	writeFile(outputFile, allStrings);
 	freeAll();
 	return 1;
