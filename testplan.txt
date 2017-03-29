@@ -8,24 +8,24 @@ Tests for Correctness
 
 Test Case 1:
 
-Directory: directory1
+Directory: directory3
 =================================================
 SUB-FILES AND SUB-DIRECTORIES: 
 
-directory1/file1
-directory1/file2
-directory1/file3
+directory3/file1
+directory3/file2
+directory3/file3
 
 =================================================
 CONTENT
 
-Contents of directory1/file1:
+Contents of directory3/file1:
 
 I like pickles.
 I love pickles.
 Shoe
 
-Contents of directory1/file2:
+Contents of directory3/file2:
 
 fwd re fwd re fwd re fwd re fwd re fwd re fwd re fwd re
 fwd re fwd re fwd re fwd re fwd re fwd re fwd re fwd re
@@ -73,31 +73,31 @@ Resulting XML:
 
 Test Case 2: 
 
-Directory: directory2 
+Directory: directory6 
 
 =================================================
 SUB-FILES/SUB-DIRECTORIES
 
 
-directory2/file1
-directory2/sub_dir1/fil
+directory6/file1
+directory6/sub_dir1/file1
 
 =================================================
 CONTENT
 
 
-Contents of directory2/file1:
+Contents of directory6/file1:
 
-You are a cat
+You are a goat
 
-Contents of directory2/sub_dir1/file1:
+Contents of directory6/sub_dir1/file1:
 
 cat CaT cat goaT
 
 
 =================================================
 RESULTING XML
-
+	
 <?xml version="1.0" encoding="UTF-8"?>
 <fileIndex>
 	<word text="a">
@@ -122,34 +122,34 @@ RESULTING XML
 
 Test Case 3:
 
-Directory: directory3 
+Directory: directory5 
 
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
-/directory3/file1
-/directory3/file2
-/directory3/file3
-/directory/sub_dir1/file1
-/directory/sub_dir2/file1
-/directory/sub_dir2/file2
+/directory5/file1
+/directory5/file2
+/directory5/file3
+/directory5/sub_dir1/file1
+/directory5/sub_dir2/file1
+/directory5/sub_dir2/file2
 
 =================================================
 CONTENT
 
-Content for directory3/file1
+Content for directory5/file1
 
 Hello world. 
 
-Content for directory3/sub_dir1/file1
+Content for directory5/sub_dir1/file1
 
 HELLO HELLO HELLO HELLO
 
-Content for directory3/sub_dir2/file1
+Content for directory5/sub_dir2/file1
 
 WORLD WoRlD WORLD
 
-Content for directory3/sub_dir2/file2
+Content for directory5/sub_dir2/file2
 
 ... 
 
@@ -189,7 +189,7 @@ HI#HI#HI#HI#HI#
 
 Content for directory4/file1 
 
-#dog#dog#dog#dog#dog
+#dog#dog#dog#dog#dog@@@hi@hI
 
 Content for directory4/sub3/file1
 
@@ -213,21 +213,21 @@ RESULTING XML
 
 Test Case 5:
 
-Directory: directory5  
+Directory: directory2  
 
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
-directory5/boop
-directory5/sub1/sub_sub1: beep 
+directory2/boop
+directory2/sub1/sub_sub1: beep 
 =================================================
 CONTENT
 
-Content in directory5/boop:
+Content in directory2/boop:
 
 Go Go Power Rangers 
 
-Content in directory5/sub1/sub_sub1:  
+Content in directory2/sub1/sub_sub1:  
 
 Rangers Power Go Go
 
@@ -256,23 +256,27 @@ RESULTING XML
 
 Test Case 6:
 
-Directory: directory6   
+Directory: directory1   
 
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
-directory6/file1
-directory6/file2
+directory1/file1
+directory1/file2
 
 =================================================
 CONTENT
 
-Content in directory6/file1:
+Content in directory1/file1:
 
 a.a.a.a.a
 a a a a hello
  
-Content in directory6/file2
+Content in directory1/File1
+
+hello
+
+Content in directory1/file2
 
 hello.@hello
 
@@ -286,6 +290,7 @@ RESULTING XML
 	</word>
 	<word text="hello">
 		<file name="file2">2</file>
+		<file name="File1">1</file>
 		<file name="file1">1</file>
 	</word>
 </fileIndex>
@@ -355,3 +360,51 @@ RESULTING XML
 
 
 ==================================================================================================
+
+Test Case 8:
+
+Directory:  directory8
+
+=================================================
+SUB-FILES AND SUB-DIRECTORIES 
+
+directory8/file1
+directory8/file2
+directory8/sub_dir1/file1
+
+=================================================
+CONTENT
+
+directory8/file1
+
+CARZ_caRz%%%KIDS
+
+directory8/file2
+
+lollipop
+
+directory8/sub_dir1/file1
+
+a1877-Carz-4-kids
+
+
+=================================================
+RESULTING XML
+
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="a1877">
+		<file name="file1">1</file>
+	</word>
+	<word text="carz">
+		<file name="file1">3</file>
+	</word>
+	<word text="kids">
+		<file name="file1">2</file>
+	</word>
+	<word text="lollipop">
+		<file name="file2">1</file>
+	</word>
+</fileIndex>
+
+
