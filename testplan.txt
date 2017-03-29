@@ -12,7 +12,9 @@ Directory: directory1
 =================================================
 SUB-FILES AND SUB-DIRECTORIES: 
 
-Files in directory 1: file1, file2, file3 
+directory1/file1
+directory1/file2
+directory1/file3
 
 =================================================
 CONTENT
@@ -31,12 +33,41 @@ fwd re fwd re fwd re fwd re fwd re fwd re fwd re fwd re
 
 Contents of directory1/file3: 
 
-yes
+yes***&^&^&Yes**YES
 
 
 =================================================
 
 Resulting XML:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="fwd">
+		<file name="file2">16</file>
+	</word>
+	<word text="i">
+		<file name="file1">2</file>
+	</word>
+	<word text="like">
+		<file name="file1">1</file>
+	</word>
+	<word text="love">
+		<file name="file1">1</file>
+	</word>
+	<word text="pickles">
+		<file name="file1">2</file>
+	</word>
+	<word text="re">
+		<file name="file2">16</file>
+	</word>
+	<word text="shoe">
+		<file name="file1">1</file>
+	</word>
+	<word text="yes">
+		<file name="file3">3</file>
+	</word>
+</fileIndex>
+
 
 ==================================================================================================
 
@@ -48,12 +79,8 @@ Directory: directory2
 SUB-FILES/SUB-DIRECTORIES
 
 
-Files in directory2: file1 
-
-Subdirectories in directory2:  sub_dir1
-
-Files in subdirectory sub_dir1: file1
-
+directory2/file1
+directory2/sub_dir1/fil
 
 =================================================
 CONTENT
@@ -65,11 +92,30 @@ You are a cat
 
 Contents of directory2/sub_dir1/file1:
 
-Cat cat cat
+cat CaT cat goaT
 
 
 =================================================
 RESULTING XML
+
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="a">
+		<file name="file1">1</file>
+	</word>
+	<word text="are">
+		<file name="file1">1</file>
+	</word>
+	<word text="cat">
+		<file name="file1">3</file>
+	</word>
+	<word text="goat">
+		<file name="file1">2</file>
+	</word>
+	<word text="you">
+		<file name="file1">1</file>
+	</word>
+</fileIndex>
 
 
 ==================================================================================================
@@ -81,12 +127,12 @@ Directory: directory3
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
-Files under directory3: file1, file2, file3
-Directories under directory3: sub_dir1, sub_dir2
-
-Files under sub_dir1: file1
-Files under sub_dir2: file1, file2
-
+/directory3/file1
+/directory3/file2
+/directory3/file3
+/directory/sub_dir1/file1
+/directory/sub_dir2/file1
+/directory/sub_dir2/file2
 
 =================================================
 CONTENT
@@ -101,7 +147,7 @@ HELLO HELLO HELLO HELLO
 
 Content for directory3/sub_dir2/file1
 
-WORLD WORLD WORLD
+WORLD WoRlD WORLD
 
 Content for directory3/sub_dir2/file2
 
@@ -109,6 +155,17 @@ Content for directory3/sub_dir2/file2
 
 =================================================
 RESULTING XML
+
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="hello">
+		<file name="file1">5</file>
+	</word>
+	<word text="world">
+		<file name="file1">4</file>
+	</word>
+</fileIndex>
+
 
 ==================================================================================================
 
@@ -119,11 +176,9 @@ Directory: directory4
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
-Subdirectories for directory4: sub1, sub2, sub3
-
-Files under directory4/sub1: file1
-Files under directory4/sub2: file1
-Files under directory3/sub3: file1 
+directory4/file1
+directory4/file2
+directory3/file3 
 
 =================================================
 CONTENT
@@ -132,16 +187,27 @@ Content for directory4/sub1/file1
 
 HI#HI#HI#HI#HI#
 
-Content for directory4/sub2/file1
+Content for directory4/file1 
 
-#dog#dog#dog#dog#dog 
+#dog#dog#dog#dog#dog
 
-Content for directory4/sub3/file3
+Content for directory4/sub3/file1
 
 dog dog dog dog dog
 
 =================================================
 RESULTING XML
+
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="dog">
+		<file name="file1">10</file>
+	</word>
+	<word text="hi">
+		<file name="file1">7</file>
+	</word>
+</fileIndex>
+
 
 ==================================================================================================
 
@@ -152,11 +218,8 @@ Directory: directory5
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
- 
-Sub-Directories under directory5: sub1
-Sub-Directories under directory5/sub1: sub_sub1:
-Files under directory5: boop
-Files under directory5/sub1/sub_sub1: beep 
+directory5/boop
+directory5/sub1/sub_sub1: beep 
 =================================================
 CONTENT
 
@@ -171,6 +234,23 @@ Rangers Power Go Go
 =================================================
 RESULTING XML
 
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="go">
+		<file name="boop">2</file>
+		<file name="sub_sub1">2</file>
+	</word>
+	<word text="power">
+		<file name="boop">1</file>
+		<file name="sub_sub1">1</file>
+	</word>
+	<word text="rangers">
+		<file name="boop">1</file>
+		<file name="sub_sub1">1</file>
+	</word>
+</fileIndex>
+
+
 ==================================================================================================
 
 
@@ -181,58 +261,97 @@ Directory: directory6
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
-Sub-Directories under directory6: sub1
-Files under directory6: muns
-Files under directory6/sub1: teMM tEmm tEmm 
+directory6/file1
+directory6/file2
 
 =================================================
 CONTENT
 
 Content in directory6/file1:
 
-hOi, name teMM 
-
+a.a.a.a.a
+a a a a hello
  
-Content in directory6/sub1/floop
+Content in directory6/file2
 
-teMm TeMM and teMMIE 
-
-
-Content in directory6/sub1/flip
-
-go colleg, make muns for teMM and tEMM
-
-
-Content in directory6/sub1/flop 
-
-temm go cOlleg 
+hello.@hello
 
 =================================================
 RESULTING XML
 
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="a">
+		<file name="file1">9</file>
+	</word>
+	<word text="hello">
+		<file name="file2">2</file>
+		<file name="file1">1</file>
+	</word>
+</fileIndex>
 
 
 ==================================================================================================
 
 
-
-Tests for Robustness: 
-
-
-
 Test Case 7:
 
-Directory:  
+Directory:  directory7
 
 =================================================
 SUB-FILES AND SUB-DIRECTORIES 
 
 
+1) directory7/sub1/sub_file1
+2) directory7/sub1/sub_sub1/sub_file1
+3) directory7/sub1/sub_sub2/test
+
 =================================================
 CONTENT
+
+1) directory7/sub1/sub_file1
+
+A ca33t#in#my#room.M.a.a.a
+
+2) directory7/sub1/sub_sub1/sub_file1
+
+cat cat cat cat
+
+3) directory7/sub1/sub_sub2/test
+
+hello hello hello
 
 
 =================================================
 RESULTING XML
+
+<?xml version="1.0" encoding="UTF-8"?>
+<fileIndex>
+	<word text="a">
+		<file name="sub_file1">4</file>
+	</word>
+	<word text="ca33t">
+		<file name="sub_file1">1</file>
+	</word>
+	<word text="cat">
+		<file name="sub_file1">4</file>
+	</word>
+	<word text="hello">
+		<file name="test">3</file>
+	</word>
+	<word text="in">
+		<file name="sub_file1">1</file>
+	</word>
+	<word text="m">
+		<file name="sub_file1">1</file>
+	</word>
+	<word text="my">
+		<file name="sub_file1">1</file>
+	</word>
+	<word text="room">
+		<file name="sub_file1">1</file>
+	</word>
+</fileIndex>
+
 
 ==================================================================================================
