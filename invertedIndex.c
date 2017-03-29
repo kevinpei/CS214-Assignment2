@@ -103,8 +103,6 @@ void search_dir(char * dir) {
 			}
 		}	
 
-		
-
 		free(next);
 		printf("Hello\n");			
 
@@ -129,9 +127,11 @@ void search_dir(char * dir) {
 */
 char* getToken(int file) {
 	int currentSize = 0;
-	char* buffer = malloc(1000);
+	char* buffer = (char*)malloc(1000);
+	memset(buffer,0,1000);
 	
 	char* nextChar = malloc(1);
+	memset(nextChar, 0, 1);
 	// Iterates through the file until an alphabetical character is reached.
 	while (!isalpha(*nextChar)) {
 		// If the end of the file is reached before another token is found, then return NULL.
@@ -147,7 +147,8 @@ char* getToken(int file) {
 		read(file, nextChar, 1);
 	}
 	buffer[currentSize] = '\0';
-	char* nextToken = malloc(currentSize + 1);
+	char* nextToken = (char*)malloc(currentSize + 1);
+	memset(nextToken,0, currentSize+1);
 	strncpy(nextToken, buffer, currentSize);
 	nextToken[currentSize] = '\0';
 	return nextToken;
@@ -242,7 +243,7 @@ int readFile(char* fileName, char* local_fileName) {
 			newFile->next = NULL;
 			newFile->prev = NULL;
 			
-			stringTable* newString = malloc(sizeof(stringTable));
+			stringTable* newString = (stringTable*) malloc(sizeof(stringTable));
 			newString->string = nextToken;
 			newString->files = newFile;
 			newString->next = NULL;
@@ -271,9 +272,6 @@ int readFile(char* fileName, char* local_fileName) {
 				/* 
 				* If the file name is found, increase frequency and then sort it so that it is in the correct position.
 				*/
-				printf("Crash here?\n");
-				
-
 
 				if (strcmp(fileptr->fileName, local_fileName) == 0) { //local_fileName used to be nameOfFile
 					printf("THIS\n");
@@ -286,9 +284,9 @@ int readFile(char* fileName, char* local_fileName) {
 					printf("%s\n","Frequency is: " + fileptr->frequency);
 					free(nameOfFile);
 					fileTable* newptr = fileptr;
-					//fileTable* newprev = NULL; 
+					fileTable* newprev = NULL; 
 					//THIS LINE causes segfault. 
-					fileTable* newprev = (fileTable*) malloc(sizeof(fileTable));
+					//fileTable* newprev = (fileTable*) malloc(sizeof(fileTable));
 					int positionFound = 0;
 					/*
 					* First, the fileptr is moved until it is in the appropriate frequency bracket. Then it is sorted 						* alphabetically so that
@@ -506,9 +504,6 @@ int writeFile(char* fileName, stringTable* hashtable) {
 	return 1;
 }
 
-
-
-
 void freeAll() {
 	stringTable* str_table;	
 	stringTable* str_next; 
@@ -531,7 +526,6 @@ void freeAll() {
 	printf("Freed all\n"); 
 }
 
-
 int main(int argc, char *argv[]) {
 
 	if(argc < 3) {
@@ -540,7 +534,12 @@ int main(int argc, char *argv[]) {
 
 	char * outputFile = argv[1]; 
 	char * searchTarget = argv[2]; 
-	
+
+	char * input = (char*)malloc(1000);
+	char * newName = (char*)malloc(1000); 
+
+
+
 	int result = isDir(outputFile); 	
 	
 	if(result == 1) {
@@ -549,8 +548,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(result == 0) {
-		char * input = malloc(1000);
-		char * newName = malloc(1000); 
+		
 
 		printf("An output file or with same the name already exists...\n");
 		printf("Would you like to override the file...?\n"); 
@@ -561,16 +559,25 @@ int main(int argc, char *argv[]) {
 			if(!strcmp(input, "y") || !strcmp(input, "n")) {
 				if(!strcmp(input, "y")) {
 					printf("Overriding...\n");
-					writeFile(outputFile, allStrings);
+					remove(outputFile);
+					//writeFile(outputFile, allStrings);
 					break; 	
 				} else if (!strcmp(input, "n")) {
-					printf("Choose a new name for your file...\n");
-					scanf("%s", newName);
+					while(1) {
+						printf("Choose a new name for your file...\n");
+						scanf("%s", newName);
 					
-					if(isDir(newName) == -1) {
-						outputFile = newName; 						
-						break; 	
-					} 					   
+						//int x = isDir(newName);
+						printf("%d\n", newName); 
+
+						if(isDir(newName) == -1) {
+							outputFile = newName; 						
+							break; 	
+						} else {
+							printf("%s\n","A file/directory with that name already exists. Please try again...");
+						}
+					} 
+					break;					   
 				}
 			} else {
 				printf("Invalid input. Please reply with 'y' or 'n'...\n"); 
