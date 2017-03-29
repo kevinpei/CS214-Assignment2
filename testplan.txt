@@ -4,6 +4,8 @@ Test Plan Document
 
 Tests for Correctness 
 
+Note: All test directories are stored in tests.zip
+
 ==================================================================================================
 
 Test Case 1:
@@ -407,4 +409,11 @@ RESULTING XML
 	</word>
 </fileIndex>
 
+==================================================================================================
 
+We have performed further testing than the test cases
+outlined above and have found it to work for multiple
+files spread among many subdirectories and to work for
+text files as large as 26,302 KB large. We are confident
+this program is robust enough to read allmost any file 
+in any realistic number of directories accurately.
